@@ -1,0 +1,140 @@
+---
+title: "European Association for the Study of Diabetes, 2018"
+output: 
+    postr::flex_dashboard_poster:
+        render_print: false
+        theme: lumen
+        orientation: columns
+---
+
+## {data-width=35 .small}
+
+<h4> **Leg length, a marker of early childhood conditions, associates with specific clusters of serum fatty acids** </h4>
+| **Luke W. Johnston^1^, Zhen Liu^2^, Ravi Retnakaran^2^, Stewart B. Harris^3^, Richard P. Bazinet^2^, Anthony J. Hanley^2^**
+| *^1^ Aarhus University, Aarhus, Denmark; ^2^ University of Toronto, Toronto, Canada; ^3^ University of Western Ontario, London, Canada*
+
+### {data-height=45}
+
+```{r setup, message = FALSE, echo = FALSE}
+devtools::load_all()
+set_options()
+library(dplyr)
+library(patchwork)
+library(ggplot2)
+library(carpenter)
+knitr::opts_chunk$set(echo = FALSE, dpi = 400)
+
+fig_num <- captioner::captioner("Figure")
+fig_fa <- fig_num("fattyacids", "Boxplots showing the concentration (median with interquartile range) of individual fatty acids in each serum lipid fraction.")
+fig_pls <- fig_num("pls", "**(A, C)** PLS component loadings (coefficients) of each fatty acid for LHR (A) and Height (C). Fatty acids that have a large positive or negative loading indicate a stronger contribution the overall component score; a positive or negative *total* loading score represents a higher or lower value, respectively, for LHR or Height. **(B, D)** Correlations between component scores and fatty acid values for LHR (B) and Height (D). Fatty acids between the two circles indicate that they have a strong correlation to the scores. A fatty acid with a strong positive correlation suggests that a higher concentration of the fatty acid has a higher component score, therefore associating with a higher LHR or Height. A fatty acid with a strong negative correlation suggests that a higher fatty acid concentration has a lower component score, therefore associating with has a lower LHR or Height. Lighter dots represent fatty acids that do not strongly load or contribute to the PLS components scores.")
+```
+
+**Aims**:
+Adverse early childhood conditions have been associated with greater risk for
+adult chronic diseases such as type 2 diabetes (T2DM) and cardiovascular disease.
+However, the specific mechanism of action is not well understood. Adult relative
+leg length is a potential biomarker of early childhood conditions. Our aim was
+to identify potential groups or patterns of fatty acids that relate to height or
+leg length.
+
+**Methods**:
+Canadian adults (n=453) at risk for T2DM from the Prospective
+Metabolism and Islet Cell Evaluation (PROMISE) cohort had detailed personal and
+metabolic data collected.  Serum fatty acid concentrations (nmol/mL) were quantified at
+the baseline visit (2004-2006) for 22 fatty acids in the cholesteryl ester (**CE**),
+phospholipid (**PL**), triacylglycerol (**TG**), and non-esterified (**NE**) lipid
+fractions. Height and sitting height were measured, which were used to compute
+leg to height ratio (**LHR**). Sitting height was only measured at the 3-year
+follow-up visit. To identify groupings in the fatty acid profile, we used the
+supervised dimensionality reduction method partial least squares (PLS) with the
+stature components as the constraining variables and the fatty acids as the
+predictor variables. Two separate models were analyzed, one each for height and
+LHR.
+
+**Results**:
+In the PLS model with LHR (Figure 2A), the first component was positively loaded only by
+20:5 n-3, 22:5 n-3, and 22:6 n-3 while the second component was negatively loaded
+by e.g. 14:0, 16:0, and 16:1 n-7. For height (Figure 2C), the first component
+only loaded negatively with 16:1 n-7 while the second component by various 18,
+20, and 22 chain fatty acids. An example interpretation of the loadings is that,
+for Figure 2A, one standard deviation increase in PL 22:6 n-3 contributes to the
+LHR C1 score by 0.27. The fatty acids that contributed substantially to the
+explained variance for LHR (Figure 2B) and that grouped together were the 14,
+16, and 18 chain fatty acids, while no fatty acids contributed strongly in the
+height model (Figure 2D).
+
+**Conclusions**:
+Longer adult relative leg length, but not height, associated with a distinct
+lipid profile in late adulthood. This profile reflected more omega-3 long chain
+fatty acids and less of the 14 and 16 carbon long fatty acids. This results seem
+to indicate that early childhood conditions, as reflected in adult leg length,
+may subtly influence lipid production and usage in late adulthood.
+
+**Disclosures**: We have no disclosures to report for this project.
+
+<table style="width:100%">
+<tr><td width="62%">
+**Contact**:  
+Luke W. Johnston, MSc, PhD  
+Email: lwjohnst@ph.au.dk  
+ORCID: <a href="https://orcid.org/0000-0003-4169-2616" target="orcid.widget" rel="noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">0000-0003-4169-2616</a>  
+<!-- Code: <a href="https://github.com/lwjohnst86/edeg2018">github.com/lwjohnst86/edeg2018</a>   -->
+</td><td width="38%">
+<img src="resources/au-logo.png" style="width:110px"></img><br>
+<img src="resources/UT-DNS-logo.jpg" style="width:125px"></img> 
+</td></tr>
+</table>
+
+### Basic characteristics of the PROMISE cohort at the baseline visit {data-height=45}
+
+```{r tab_basics}
+project_data %>% 
+    filter(VN == 0) %>% 
+    mutate(Sex = factor(Sex)) %>% 
+    outline_table() %>% 
+    add_rows(c("Sex", "Ethnicity"), stat_nPct) %>% 
+    add_rows(c("Age", outcome_vars[c(1, 4)], "BMI", "Waist"), stat_medianIQR, digits = 2) %>% 
+    renaming("rows", function(x) stringr::str_replace(x, "Ethnicity", "Ethnicity/ancestry") %>% 
+                 stringr::str_replace("LegHtRatio", "LHR^1^")) %>% 
+    renaming("header", c("Characteristics", "Values")) %>% 
+    build_table(alignment = "right")
+```
+
+Note: Values are in n (%) or median (interquartile range). 1) Only LHR was
+measured at the 3rd year follow-up visit. All others were measured at the
+baseline visit.
+
+## {data-width=65 .small}
+
+### Distribution of fatty acids in serum {data-height=5}
+
+```{r fig_fatty_acid_distributions, fig.height=3.5, fig.width=8.5, fig.cap=fig_fa}
+project_data %>% 
+    plot_fattyacids() +
+    facet_grid(rows = ~ Fractions, scales = "free_x")
+```
+
+
+### PLS model results: Fatty acid (nmol/mL) groupings by **LHR (A, B)** and **Height (C, D)** {data-height=95}
+
+```{r fig_pls_model, fig.height=6.5, fig.width=9.75, fig.cap=fig_pls}
+fig_loadings_lhr <- pls_results$conc$lhr %>% 
+    plot_loadings(load_range = c(-0.2, 0.2)) +
+    remove_legend 
+fig_loadings_hgt <- pls_results$conc$height %>% 
+    plot_loadings(load_range = c(-0.2, 0.2))
+fig_corr_lhr <- pls_results$conc$lhr %>% 
+    plot_corr_comps() +
+    remove_legend
+fig_corr_hgt <- pls_results$conc$height %>% 
+    plot_corr_comps() +
+    remove_legend 
+
+fig_loadings_lhr + ggtitle("LHR") +
+    fig_corr_lhr + ggtitle("LHR") +
+    fig_loadings_hgt + ggtitle("Height") +
+    fig_corr_hgt + ggtitle("Height") +
+    plot_layout(ncol = 2, byrow = FALSE, heights = c(0.95, 2)) +
+    plot_annotation(tag_levels = "A")
+```
+

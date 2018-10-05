@@ -1,0 +1,40 @@
+Package: easd2018
+Title: Abstract for the EASD 2018.
+Version: 1.0.0
+Authors@R: person("Luke", "Johnston", email = "lwjohnst@gmail.com", role = c("aut", "cre"))
+Description: Analysis and abstract files for submitting to EASD.
+License: MIT + file LICENSE
+Depends:
+    R (>= 3.4.3)
+Imports:
+    devtools (>= 1.13.5),
+    dplyr (>= 0.7.4),
+    magrittr (>= 1.5),
+    PROMISE.misc,
+    tidyr (>= 0.8.0),
+    mason (>= 0.2.5.9000),
+    rrr,
+    seer,
+    patchwork,
+    forcats,
+    ghibli,
+    rlang,
+    carpenter,
+    postr (>= 0.0.1.9000),
+    ggrepel,
+    captioner,
+    rfigshare
+Suggests:
+    knitr (>= 1.20),
+    rmarkdown (>= 1.9)
+VignetteBuilder: knitr
+Encoding: UTF-8
+LazyData: true
+Remotes: 
+    lwjohnst86/PROMISE.misc,
+    lwjohnst86/mason,
+    lwjohnst86/seer,
+    thomasp85/patchwork,
+    lwjohnst86/postr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.0

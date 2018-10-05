@@ -1,0 +1,127 @@
+---
+output: fost::default_manuscript
+---
+
+```{r setup, message = FALSE, echo = FALSE}
+devtools::load_all()
+set_options()
+library(pls)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+```
+
+Total characters: 2300 + 400 / 3200 (including authors and title, excluding spaces; +400
+characters for figure)
+
+Title characters: 106 / 150
+
+**Leg length, a marker of early childhood conditions, associates with specific clusters of serum fatty acids**
+
+Luke W. Johnston, Zhen Liu, Ravi Retnakaran, Stewart B. Harris, 
+Richard P. Bazinet, Anthony J. Hanley
+
+**Background and aims**: 
+Adverse early childhood conditions have been associated with greater risk for
+adult chronic diseases such as type 2 diabetes (T2DM) and cardiovascular disease.
+However, the specific mechanism of action is not well elucidated. Adult leg
+length is an established biomarker of early childhood conditions. We aimed to
+explore distinct clusters of a broad spectrum of serum fatty acids (FA) by
+height and leg length.
+
+**Materials and Methods**: 
+Canadian adults (n=453) at risk for T2DM from the Prospective Metabolism and
+Islet Cell Evaluation (PROMISE) cohort had detailed personal and metabolic
+data collected, including the measurement of FA and stature.
+The concentrations of 22 FA in the cholesteryl ester (CE), phospholipid
+(PL), triacylglycerol (TG), and non-esterified (NE) fractions were quantified.
+Height and sitting height were measured, which were used to compute leg to
+height ratio (LHR). To identify clusters in the FA profile, we used the supervised
+dimensionality reduction method partial least squares (PLS) with the stature
+components as the constraining variables and the FA as the predictor variables.
+Separate models were analyzed for height and LHR.
+
+```{r pls_models, echo=FALSE}
+pls_data <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(fa_conc_vars, outcome_vars)) %>% 
+    na.omit()
+
+# Height
+pls_results <-
+    pls_model(.data = pls_data,
+              .xvar = fa_conc_vars,
+              .yvar = outcome_vars[1],
+              ncomp = 2) 
+expl_ht <- pls::explvar(pls_results) %>% 
+    sum() %>% 
+    round(2)
+
+fig_ht_load <- pls_results %>% 
+    plot_loadings(load_range = c(-0.2, 0.2)) +
+    coord_cartesian(xlim = c(-0.3, 0.35)) +
+    ggtitle("Height")
+fig_ht_corr <- pls_results %>% 
+    plot_corr_comps() +
+    ggtitle("Height")
+
+# LHR
+pls_results <-
+    pls_model(.data = pls_data,
+              .xvar = fa_conc_vars,
+              .yvar = outcome_vars[4],
+              ncomp = 2) 
+expl_lhr <- pls::explvar(pls_results) %>% 
+    sum() %>% 
+    round(2)
+
+fig_lhr_load <- pls_results %>% 
+    plot_loadings(load_range = c(-0.2, 0.2)) +
+    coord_cartesian(xlim = c(-0.3, 0.35)) +
+    ggtitle("LHR")
+    
+fig_lhr_corr <- pls_results %>% 
+    plot_corr_comps() +
+    ggtitle("LHR")
+```
+
+```{r inline, echo=FALSE}
+yr0 <- filter(project_data, VN == 0)
+female <- calc_discr_npct(yr0$Sex, "Female")
+european <- calc_discr_npct(yr0$Ethnicity, "European")
+fa <- calc_fa_percent(yr0)
+top_four_fa <- fa$c[1:4] %>% 
+    stringr::str_c(collapse = ", ")
+age <- aide::ave_sd(yr0$Age)
+height <- aide::ave_sd(yr0$Height)
+lhr <- aide::ave_sd(yr0$LegHtRatio, digits = 2)
+```
+
+**Results**:
+The participants were mostly female (`r female$pct`) and of European-ancestry 
+(`r european$pct`). Mean (SD) age was `r age` years, height was `r height` cm, and LHR was
+`r lhr`. The four FA with the largest proportion in serum were `r top_four_fa`.
+For each PLS model, we extracted the first two components (C1 and C2; Figure).
+Higher LHR tended to load with a higher C1 cluster (i.e. more 20:5n-3 and 22:6n-3 in
+multiple lipid fractions) and loaded with a lower C2 cluster (i.e. less 14:1n-7,
+14:0, 16:0, 16:1n-7, 18:0 in primarily the TG and PL fractions). There were no
+well defined specific cluster of FA in C1 for height, which may reflect that higher
+height correlates positively with total FA concentration. Height tended to load
+with a higher C2 cluster (e.g. 20 or more carbon long FA in multiple fractions).
+
+**Conclusion**:
+We found that shorter adult leg length had a distinct lipid profile compared to
+shorter height, reflecting more omega-3 long chain FA and less of the 14 and 16
+chain FA. Previous research has shown that these 14-16 chain FA associate with
+greater de novo lipogenesis and exert lipotoxic effects. Our results suggest
+that early childhood conditions, as reflected in adult leg length, may lead to
+changes in lipid production and usage.
+
+```{r fig_loadings, fig.height=5, echo=FALSE, dpi=600, dev="jpeg"}
+(fig_ht_load + fig_lhr_load) +
+        # (fig_ht_corr | fig_lhr_corr) +
+    plot_layout(nrow = 2) +
+    plot_annotation(caption = stringr::str_wrap("PLS loadings of C1 and C2 by height (A) and LHR (B). Higher loading values indicate a stronger contribution of the FA to the component. Interpretation is that a higher loading score correlates with a higher height or LHR, and that higher FA corresponds to its loading value. For example, in Figure B, one unit increase in PL 22:6 n-3 contributes to the C1 score by 0.269.", width = 100),
+                    tag_levels = "A")
+```
+

@@ -1,0 +1,190 @@
+---
+title: "Exploratory Data Analysis"
+output: html_document
+---
+
+```{r setup, message = FALSE, echo = FALSE}
+devtools::load_all()
+set_options()
+library(dplyr)
+```
+
+<!--
+Brainstorm:
+
+- Figure of PLS with SHR/Height and lipidomics 
+    - corr circle and loadings
+- Figure of PLS with SHR/Height and metabolic biomarkers (LDL, TAG, etc)
+    - corr circle and loadings
+
+-->
+
+```{r, eval=FALSE}
+library(rrr)
+library(broom)
+data_rrr <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(outcome_vars, fa_conc_vars, fa_conc_vars)) %>% 
+    na.omit()
+Yvar <- data_rrr[, outcome_vars[3]]
+Xvar <- data_rrr[, fa_conc_vars]
+
+fit <- rrr(Xvar, Yvar, type = "lda")
+scores(Xvar, Yvar)
+fit
+```
+
+# Correlation
+
+## Stature with itself
+
+```{r}
+project_data %>% 
+    analyze_corr(.x = outcome_vars, .y = NULL) %>% 
+    plot_heatmap()
+```
+
+
+## Blood measures and lipids with stature
+
+```{r, fig.height=10}
+project_data %>% 
+    analyze_corr(.x = outcome_vars, .y = fa_pct_vars) %>% 
+    plot_heatmap()
+```
+
+```{r}
+project_data %>% 
+    analyze_corr(.x = outcome_vars, .y = fa_conc_vars) %>% 
+    plot_heatmap()
+```
+
+```{r}
+project_data %>% 
+    analyze_corr(.x = outcome_vars, .y = blood_vars) %>% 
+    plot_heatmap()
+```
+
+
+# PLS
+
+## Lipids LHR
+
+```{r SitHeightRatio_Lipids}
+pls_results <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(fa_pct_vars, outcome_vars)) %>% 
+    na.omit() %>% 
+    pls_model(.data = ., .xvar = fa_pct_vars, .yvar = outcome_vars[4]) 
+
+summary(pls_results)
+pls_results %>% 
+    plot_loadings(load_range = c(-0.2, 0.2))
+pls_results %>% 
+    plot_corr_comps()
+pls_results %>% 
+    plot_scores()
+```
+
+## Lipids (conc) LHR
+
+```{r SitHeightRatio_LipidsConc}
+pls_results <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(fa_conc_vars, outcome_vars)) %>% 
+    na.omit() %>% 
+    pls_model(.data = ., .xvar = fa_conc_vars, .yvar = outcome_vars[4]) 
+
+summary(pls_results)
+pls_results %>% 
+    plot_loadings(load_range = c(-0.2, 0.2))
+pls_results %>% 
+    plot_corr_comps()
+pls_results %>% 
+    plot_scores()
+```
+
+## Lipids Height
+
+```{r Height_Lipids}
+pls_results <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(fa_pct_vars, outcome_vars)) %>% 
+    na.omit() %>% 
+    pls_model(.data = ., .xvar = fa_pct_vars, .yvar = outcome_vars[1]) 
+
+summary(pls_results)
+pls_results %>% 
+    plot_loadings(load_range = c(-0.2, 0.2))
+pls_results %>% 
+    plot_corr_comps()
+pls_results %>% 
+    plot_scores()
+```
+
+## Lipids (conc) Height
+
+```{r Height_LipidsConc}
+pls_results <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(fa_conc_vars, outcome_vars)) %>% 
+    na.omit() %>% 
+    pls_model(.data = ., .xvar = fa_conc_vars, .yvar = outcome_vars[1]) 
+
+summary(pls_results)
+pls_results %>% 
+    plot_loadings(load_range = c(-0.2, 0.2))
+pls_results %>% 
+    plot_corr_comps()
+pls_results %>% 
+    plot_scores()
+```
+
+## Blood measures LHR
+
+```{r SitHeightRatio_Blood}
+pls_results <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(blood_vars, outcome_vars)) %>% 
+    na.omit() %>% 
+    pls_model(.data = ., .xvar = blood_vars, .yvar = outcome_vars[4]) 
+
+summary(pls_results)
+pls_results %>% 
+    plot_loadings(load_range = c(-0.4, 0.4))
+pls_results %>% 
+    plot_corr_comps()
+pls_results %>% 
+    plot_scores()
+```
+
+## Blood measures height
+
+```{r Height_Blood}
+pls_results <- project_data %>% 
+    filter(VN == 0) %>% 
+    select_at(c(blood_vars, outcome_vars)) %>% 
+    na.omit() %>% 
+    pls_model(.data = ., .xvar = blood_vars, .yvar = outcome_vars[c(1)]) 
+
+summary(pls_results)
+pls_results %>% 
+    plot_loadings(load_range = c(-0.4, 0.4))
+pls_results %>% 
+    plot_corr_comps()
+pls_results %>% 
+    plot_scores()
+```
+
+# GEE
+
+## Stature with blood measures
+
+```{r, fig.height=2, fig.width=8}
+project_data %>% 
+    mutate_at(vars(Height, SitHeight), funs(. / 100)) %>% 
+    analyze_gee(.xvar = outcome_vars, .yvar = blood_vars, .covars = covariates) %>% 
+    filter(term == "<-Xterm") %>% 
+    plot_gee_main()
+```
+
